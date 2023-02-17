@@ -1,0 +1,17 @@
+LIBHASHMAP_1.0 {
+	hashmap_init;
+	hashmap_deinit;
+
+	hashmap_clear;
+
+	hashmap_get;
+	hashmap_pop;
+
+	hashmap_link_set;
+	hashmap_set;
+
+	hashmap_iter_init;
+	hashmap_iter_next;
+
+	hashmap_str_hasher;
+};

@@ -1,4 +1,4 @@
-#include "map.h"
+#include "hashmap.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,23 +7,24 @@
 int
 main(int argc, const char **argv)
 {
-	struct map map;
-	struct map_iter iter;
+	struct hashmap hashmap;
+	struct hashmap_iter iter;
 	void *key, *value;
 	int i;
 
-	map_init(&map, 10, map_str_hash);
+	hashmap_init(&hashmap, 10, hashmap_str_hasher);
 
 	for (i = 1; i < argc; i++) {
 		key = strdup(argv[i]);
 		value = malloc(sizeof(int));
 		memcpy(value, &i, sizeof(int));
-		map_set(&map, key, strlen(key) + 1, value, sizeof(int));
+		hashmap_set(&hashmap, key, strlen(key) + 1,
+			value, sizeof(int));
 	}
 
-	for (MAP_ITER(&map, &iter)) {
+	for (HASHMAP_ITER(&hashmap, &iter)) {
 		printf("%s: %i\n", iter.link->key, *(int*)iter.link->value);
 	}
 
-	map_deinit(&map);
+	hashmap_deinit(&hashmap);
 }
