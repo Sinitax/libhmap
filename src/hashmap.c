@@ -4,29 +4,20 @@
 #include <stdio.h>
 #include <string.h>
 
-static size_t hashmap_key_bucket(struct hashmap *map,
-	const void *key, size_t size);
-static bool hashmap_key_cmp(const void *a, size_t asize,
-	const void *b, size_t bsize);
-
 static struct hashmap_link **hashmap_get_linkp(struct hashmap *map,
 	const void *key, size_t size);
 static struct hashmap_link *hashmap_link_alloc(void *key, size_t key_size,
 	void *value, size_t value_size);
 
-size_t
+static inline size_t
 hashmap_key_bucket(struct hashmap *map, const void *key, size_t size)
 {
-	LIBHASHMAP_ASSERT(map != NULL && key != NULL);
-
 	return map->hash(key, size) % map->size;
 }
 
-bool
+static inline bool
 hashmap_key_cmp(const void *a, size_t asize, const void *b, size_t bsize)
 {
-	LIBHASHMAP_ASSERT(a != NULL && asize != 0 && b != NULL && bsize != 0);
-
 	return asize == bsize && !memcmp(a, b, asize);
 }
 
@@ -35,7 +26,7 @@ hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter, *link;
 
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_ASSERT(map != NULL && key != NULL && size != 0);
 
 	iter = &map->buckets[hashmap_key_bucket(map, key, size)];
 	while (*iter != NULL) {
@@ -185,7 +176,7 @@ hashmap_link_set(struct hashmap_link *link, void *key, size_t key_size,
 	link->value_size = value_size;
 }
 
-void
+bool
 hashmap_set(struct hashmap *map, void *key, size_t key_size,
 	void *value, size_t value_size)
 {
@@ -203,7 +194,10 @@ hashmap_set(struct hashmap *map, void *key, size_t key_size,
 		hashmap_link_set(*iter, key, key_size, value, value_size);
 	} else {
 		*iter = hashmap_link_alloc(key, key_size, value, value_size);
+		if (!*iter) return false;
 	}
+
+	return true;
 }
 
 void

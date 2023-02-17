@@ -80,7 +80,7 @@ struct hashmap_link *hashmap_pop(struct hashmap *map, const void *key, size_t si
 
 void hashmap_link_set(struct hashmap_link *link, void *key, size_t key_size,
 	void *value, size_t value_size);
-void hashmap_set(struct hashmap *map, void *key, size_t key_size,
+bool hashmap_set(struct hashmap *map, void *key, size_t key_size,
 	void *value, size_t value_size);
 
 void hashmap_iter_init(struct hashmap_iter *iter);
