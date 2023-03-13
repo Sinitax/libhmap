@@ -1,19 +1,12 @@
 PREFIX ?= /usr/local
-INCLUDEDIR ?= /include
+INCLDIR ?= /include
 LIBDIR ?= /lib
 
-CFLAGS = -I include -Wno-prototype -Wunused-function -Wunused-variable
+CFLAGS = -I include -Wno-prototype -Wunused-function
+CFLAGS += -Wunused-variable -Wconversion
 
-ifeq "$(LIBMAP_DEBUG)" "1"
-CFLAGS += -g
-endif
-
-ifeq "$(LIBMAP_ASSERT)" "1"
-CFLAGS += -DLIBMAP_ASSERT_ENABLE=1
-endif
-
-ifeq "$(LIBMAP_HANDLE_ERR)" "1"
-CFLAGS += -DLIBMAP_HANDLE_ERRS=1
+ifeq "$(DEBUG)" "1"
+CFLAGS += -g -DLIBMAP_CHECK_ENABLE=1
 endif
 
 all: build/libmap.so build/libmap.a build/test
@@ -37,12 +30,12 @@ build/test: src/test.c build/libmap.a | build
 	$(CC) -o $@ $^ -I include -g
 
 install:
-	install -m 644 include/hashmap.h -t "$(DESTDIR)$(PREFIX)$(INCLUDEDIR)"
+	install -m 644 include/hashmap.h -t "$(DESTDIR)$(PREFIX)$(INCLDIR)"
 	install -m 755 build/libmap.a -t "$(DESTDIR)$(PREFIX)$(LIBDIR)"
 	install -m 755 build/libmap.so -t "$(DESTDIR)$(PREFIX)$(LIBDIR)"
 
 uninstall:
-	rm -f "$(DESTDIR)$(PREFIX)$(INCLUDEDIR)/hashmap.h"
+	rm -f "$(DESTDIR)$(PREFIX)$(INCLDIR)/hashmap.h"
 	rm -f "$(DESTDIR)$(PREFIX)$(LIBDIR)/libmap.a"
 	rm -f "$(DESTDIR)$(PREFIX)$(LIBDIR)/libmap.so"
 

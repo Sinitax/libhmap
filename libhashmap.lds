@@ -1,4 +1,4 @@
-LIBHASHMAP_1.0 {
+LIBHASHMAP_1.1 {
 	hashmap_init;
 	hashmap_deinit;
 

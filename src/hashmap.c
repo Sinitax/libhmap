@@ -1,13 +1,30 @@
 #include "hashmap.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
+#ifdef LIBHASHMAP_CHECK_ENABLE
+#define LIBHASHMAP_CHECK(x) libhashmap_assert((x), __FILE__, __LINE__, #x)
+#else
+#define LIBHASHMAP_CHECK(x)
+#endif
+
 static struct hashmap_link **hashmap_get_linkp(struct hashmap *map,
 	const void *key, size_t size);
-static struct hashmap_link *hashmap_link_alloc(void *key, size_t key_size,
-	void *value, size_t value_size);
+static int hashmap_link_alloc(struct hashmap_link **link,
+	void *key, size_t key_size, void *value, size_t value_size);
+
+static inline void libhashmap_assert(int cond,
+	const char *file, int line, const char *condstr)
+{
+	if (cond) return;
+
+	fprintf(stderr, "libhashmap: Assertion failed at %s:%i (%s)\n",
+		file, line, condstr);
+	abort();
+}
 
 static inline size_t
 hashmap_key_bucket(struct hashmap *map, const void *key, size_t size)
@@ -26,7 +43,7 @@ hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter, *link;
 
-	LIBHASHMAP_ASSERT(map != NULL && key != NULL && size != 0);
+	LIBHASHMAP_CHECK(map != NULL && key != NULL && size != 0);
 
 	iter = &map->buckets[hashmap_key_bucket(map, key, size)];
 	while (*iter != NULL) {
@@ -39,69 +56,63 @@ hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
 	return NULL;
 }
 
-struct hashmap_link *
-hashmap_link_alloc(void *key, size_t key_size, void *value, size_t value_size)
+int
+hashmap_link_alloc(struct hashmap_link **out, void *key, size_t key_size,
+	void *value, size_t value_size)
 {
 	struct hashmap_link *link;
 
-	LIBHASHMAP_ASSERT(key != NULL && value != NULL);
+	LIBHASHMAP_CHECK(key != NULL && value != NULL);
 
 	link = malloc(sizeof(struct hashmap_link));
-	if (!link) {
-		LIBHASHMAP_HANDLE_ERR("malloc");
-		return NULL;
-	}
+	if (!link) return -errno;
 	link->key = key;
 	link->key_size = key_size;
 	link->value = value;
 	link->value_size = value_size;
 	link->next = NULL;
+	*out = link;
 
-	return link;
+	return 0;
 }
 
-bool
+int
 hashmap_init(struct hashmap *map, size_t size, map_hash_func hasher)
 {
-	LIBHASHMAP_ASSERT(map != NULL && size != 0 && hasher != NULL);
+	LIBHASHMAP_CHECK(map != NULL && size != 0 && hasher != NULL);
 
 	map->buckets = calloc(size, sizeof(struct hashmap_link *));
-	if (!map->buckets) {
-		LIBHASHMAP_HANDLE_ERR("calloc");
-		return false;
-	}
+	if (!map->buckets) return -errno;
 	map->size = size;
 	map->hash = hasher;
 
-	return true;
+	return 0;
 }
 
 void
 hashmap_deinit(struct hashmap *map)
 {
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_CHECK(map != NULL);
 
 	hashmap_clear(map);
 	free(map->buckets);
 }
 
-struct hashmap *
-hashmap_alloc(size_t size, map_hash_func hasher)
+int
+hashmap_alloc(struct hashmap **map, size_t size, map_hash_func hasher)
 {
-	struct hashmap *map;
+	int rc;
 
-	map = malloc(sizeof(struct hashmap));
-	if (!map) {
-		LIBHASHMAP_HANDLE_ERR("malloc");
-		return NULL;
+	*map = malloc(sizeof(struct hashmap));
+	if (!*map) return -errno;
+
+	rc = hashmap_init(*map, size, hasher);
+	if (rc) {
+		free(*map);
+		return rc;
 	}
 
-	if (!hashmap_init(map, size, hasher)) {
-		free(map);
-		return NULL;
-	}
-
-	return map;
+	return 0;
 }
 
 void
@@ -116,9 +127,9 @@ hashmap_clear(struct hashmap *map)
 {
 	struct hashmap_iter iter;
 	struct hashmap_link *prev;
-	int i;
+	size_t i;
 
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_CHECK(map != NULL);
 
 	prev = NULL;
 	for (HASHMAP_ITER(map, &iter)) {
@@ -138,7 +149,7 @@ hashmap_get(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter;
 
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_CHECK(map != NULL);
 
 	iter = hashmap_get_linkp(map, key, size);
 
@@ -150,7 +161,7 @@ hashmap_pop(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter;
 
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_CHECK(map != NULL);
 
 	iter = hashmap_get_linkp(map, key, size);
 	if (iter) {
@@ -165,7 +176,7 @@ void
 hashmap_link_set(struct hashmap_link *link, void *key, size_t key_size,
 	void *value, size_t value_size)
 {
-	LIBHASHMAP_ASSERT(link != NULL);
+	LIBHASHMAP_CHECK(link != NULL);
 
 	free(link->key);
 	link->key = key;
@@ -176,13 +187,14 @@ hashmap_link_set(struct hashmap_link *link, void *key, size_t key_size,
 	link->value_size = value_size;
 }
 
-bool
+int
 hashmap_set(struct hashmap *map, void *key, size_t key_size,
 	void *value, size_t value_size)
 {
 	struct hashmap_link **iter;
+	int rc;
 
-	LIBHASHMAP_ASSERT(map != NULL);
+	LIBHASHMAP_CHECK(map != NULL);
 
 	iter = hashmap_get_linkp(map, key, key_size);
 	if (iter == NULL) {
@@ -193,17 +205,17 @@ hashmap_set(struct hashmap *map, void *key, size_t key_size,
 	if (*iter) {
 		hashmap_link_set(*iter, key, key_size, value, value_size);
 	} else {
-		*iter = hashmap_link_alloc(key, key_size, value, value_size);
-		if (!*iter) return false;
+		rc = hashmap_link_alloc(iter, key, key_size, value, value_size);
+		if (rc) return rc;
 	}
 
-	return true;
+	return 0;
 }
 
 void
 hashmap_iter_init(struct hashmap_iter *iter)
 {
-	LIBHASHMAP_ASSERT(iter != NULL);
+	LIBHASHMAP_CHECK(iter != NULL);
 
 	iter->bucket = 0;
 	iter->link = NULL;
@@ -212,9 +224,9 @@ hashmap_iter_init(struct hashmap_iter *iter)
 bool
 hashmap_iter_next(struct hashmap *map, struct hashmap_iter *iter)
 {
-	int i;
+	size_t i;
 
-	LIBHASHMAP_ASSERT(map != NULL && iter != NULL);
+	LIBHASHMAP_CHECK(map != NULL && iter != NULL);
 
 	if (iter->link && iter->link->next) {
 		iter->link = iter->link->next;
@@ -239,13 +251,13 @@ uint32_t
 hashmap_str_hasher(const void *data, size_t size)
 {
 	uint32_t hash;
-	int i;
+	size_t i;
 
-	LIBHASHMAP_ASSERT(data != NULL && size > 0);
+	LIBHASHMAP_CHECK(data != NULL && size > 0);
 
-	hash = 0;
+	hash = 5381;
 	for (i = 0; i < size; i++)
-		hash = 31 * hash + ((uint8_t *) data)[i];
+		hash = 33 * hash + ((uint8_t *) data)[i];
 
 	return hash;
 }
