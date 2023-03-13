@@ -26,7 +26,7 @@ build:
 
 build/libmap.a: src/hashmap.c include/hashmap.h | build
 	$(CC) -o build/tmp.o src/hashmap.c $(CFLAGS) -r
-	objcopy --keep-global-symbols=libhashmap.abi build/tmp.o build/fixed.o
+	objcopy --keep-global-symbols=libhashmap.api build/tmp.o build/fixed.o
 	$(AR) rcs $@ build/fixed.o
 
 build/libmap.so: src/hashmap.c include/hashmap.h | build
