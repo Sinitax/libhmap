@@ -6,7 +6,7 @@ CFLAGS = -I include -Wno-prototype -Wunused-function
 CFLAGS += -Wunused-variable -Wconversion
 
 ifeq "$(DEBUG)" "1"
-CFLAGS += -g -DLIBHASHMAP_CHECK_ENABLE=1
+CFLAGS += -g
 endif
 
 all: build/libhashmap.so build/libhashmap.a build/test
