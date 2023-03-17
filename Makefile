@@ -2,7 +2,7 @@ PREFIX ?= /usr/local
 INCLDIR ?= /include
 LIBDIR ?= /lib
 
-CFLAGS = -I include -Wno-prototype -Wunused-function
+CFLAGS = -I include -I lib/liballoc/include -Wno-prototype -Wunused-function
 CFLAGS += -Wunused-variable -Wconversion
 
 ifeq "$(DEBUG)" "1"
@@ -17,6 +17,9 @@ clean:
 build:
 	mkdir build
 
+lib/liballoc/build/liballoc.a:
+	make -C lib/liballoc build/liballoc.a
+
 build/libhashmap.a: src/hashmap.c include/hashmap.h | build
 	$(CC) -o build/tmp.o src/hashmap.c $(CFLAGS) -r
 	objcopy --keep-global-symbols=libhashmap.api build/tmp.o build/fixed.o
@@ -26,8 +29,8 @@ build/libhashmap.so: src/hashmap.c include/hashmap.h | build
 	$(CC) -o $@ src/hashmap.c -fPIC $(CFLAGS) -shared \
 		-Wl,-version-script libhashmap.lds
 
-build/test: src/test.c build/libhashmap.a | build
-	$(CC) -o $@ $^ -I include -g
+build/test: src/test.c build/libhashmap.a lib/liballoc/build/liballoc.a  | build
+	$(CC) -o $@ $^ -I include -I lib/liballoc/include -g
 
 install:
 	install -m 644 include/hashmap.h -t "$(DESTDIR)$(PREFIX)$(INCLDIR)"

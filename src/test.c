@@ -15,7 +15,7 @@ main(int argc, const char **argv)
 	void *key, *value;
 	int i, rc;
 
-	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher);
+	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher, &stdlib_heap_allocator);
 	if (rc) LIBHASHMAP_ERR(rc);
 
 	for (i = 1; i < argc; i++) {
@@ -27,8 +27,10 @@ main(int argc, const char **argv)
 		if (rc) LIBHASHMAP_ERR(rc);
 	}
 
-	for (HASHMAP_ITER(&hashmap, &iter))
-		printf("%s: %i\n", iter.link->key, *(int*)iter.link->value);
+	for (HASHMAP_ITER(&hashmap, &iter)) {
+		printf("%s: %i\n", (char *)iter.link->key,
+			*(int*)iter.link->value);
+	}
 
 	hashmap_deinit(&hashmap);
 }

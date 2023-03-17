@@ -1,8 +1,10 @@
 #pragma once
 
+#include "allocator.h"
+
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 #define HASHMAP_ITER(map, iter) \
 	hashmap_iter_init(iter); hashmap_iter_next(map, iter);
@@ -26,12 +28,15 @@ struct hashmap {
 	map_hash_func hash;
 	struct hashmap_link **buckets;
 	size_t size;
+	const struct allocator *allocator;
 };
 
-int hashmap_init(struct hashmap *map, size_t size, map_hash_func hasher);
+int hashmap_init(struct hashmap *map, size_t size, map_hash_func hasher,
+	const struct allocator *allocator);
 void hashmap_deinit(struct hashmap *map);
 
-int hashmap_alloc(struct hashmap **map, size_t size, map_hash_func hasher);
+int hashmap_alloc(struct hashmap **map, size_t size, map_hash_func hasher,
+	const struct allocator *allocator);
 void hashmap_free(struct hashmap *map);
 
 void hashmap_clear(struct hashmap *map);
@@ -41,7 +46,8 @@ struct hashmap_link *hashmap_get(struct hashmap *map,
 struct hashmap_link *hashmap_pop(struct hashmap *map,
 	const void *key, size_t size);
 
-void hashmap_link_set(struct hashmap_link *link, void *key, size_t key_size,
+void hashmap_link_set(struct hashmap *map,
+	struct hashmap_link *link, void *key, size_t key_size,
 	void *value, size_t value_size);
 int hashmap_set(struct hashmap *map, void *key, size_t key_size,
 	void *value, size_t value_size);
