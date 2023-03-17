@@ -10,9 +10,9 @@
 typedef uint32_t (*map_hash_func)(const void *data, size_t size);
 
 struct hashmap_link {
-	uint8_t *key;
+	void *key;
 	size_t key_size;
-	uint8_t *value;
+	void *value;
 	size_t value_size;
 	struct hashmap_link *next;
 };
