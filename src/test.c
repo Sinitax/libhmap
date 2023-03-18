@@ -15,7 +15,8 @@ main(int argc, const char **argv)
 	void *key, *value;
 	int i, rc;
 
-	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher, &stdlib_heap_allocator);
+	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher,
+		hashmap_default_keycmp, &stdlib_heap_allocator);
 	if (rc) LIBHASHMAP_ERR(rc);
 
 	for (i = 1; i < argc; i++) {

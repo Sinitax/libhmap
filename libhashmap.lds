@@ -1,7 +1,9 @@
-LIBHASHMAP_1.1 {
+LIBHASHMAP_1.2 {
 	hashmap_init;
 	hashmap_deinit;
 
+	hashmap_copy;
+	hashmap_swap;
 	hashmap_clear;
 
 	hashmap_get;
@@ -14,4 +16,5 @@ LIBHASHMAP_1.1 {
 	hashmap_iter_next;
 
 	hashmap_str_hasher;
+	hashmap_default_keycmp;
 };
