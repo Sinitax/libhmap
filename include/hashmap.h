@@ -47,6 +47,8 @@ void hashmap_clear(struct hashmap *map);
 
 struct hashmap_link **hashmap_link_get(struct hashmap *map,
 	const void *key, size_t size);
+struct hashmap_link **hashmap_link_pos(struct hashmap *map,
+	const void *key, size_t size);
 struct hashmap_link *hashmap_link_pop(struct hashmap *map,
 	const void *key, size_t size);
 void hashmap_link_set(struct hashmap *map, struct hashmap_link *link,

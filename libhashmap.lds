@@ -9,6 +9,7 @@ LIBHASHMAP_1.3 {
 	hashmap_clear;
 
 	hashmap_link_get;
+	hashmap_link_pos;
 	hashmap_link_pop;
 	hashmap_link_set;
 	hashmap_link_alloc;

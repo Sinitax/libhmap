@@ -121,12 +121,26 @@ hashmap_link_get(struct hashmap *map, const void *key, size_t size)
 	return NULL;
 }
 
-struct hashmap_link *
-hashmap_link_pop(struct hashmap *map, const void *key, size_t size)
+struct hashmap_link **
+hashmap_link_pos(struct hashmap *map, const void *key, size_t keysize)
 {
 	struct hashmap_link **iter;
 
-	iter = hashmap_link_get(map, key, size);
+	iter = hashmap_link_get(map, key, keysize);
+	if (iter == NULL) {
+		iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
+		while (*iter) iter = &((*iter)->next);
+	}
+
+	return iter;
+}
+
+struct hashmap_link *
+hashmap_link_pop(struct hashmap *map, const void *key, size_t keysize)
+{
+	struct hashmap_link **iter;
+
+	iter = hashmap_link_get(map, key, keysize);
 	if (iter) {
 		*iter = (*iter)->next;
 		return *iter;
@@ -163,21 +177,21 @@ hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
 }
 
 struct hashmap_link *
-hashmap_get(struct hashmap *map, const void *key, size_t size)
+hashmap_get(struct hashmap *map, const void *key, size_t keysize)
 {
 	struct hashmap_link **iter;
 
-	iter = hashmap_link_get(map, key, size);
+	iter = hashmap_link_get(map, key, keysize);
 
 	return iter ? *iter : NULL;
 }
 
 void
-hashmap_rm(struct hashmap *map, const void *key, size_t size)
+hashmap_rm(struct hashmap *map, const void *key, size_t keysize)
 {
 	struct hashmap_link *link;
 
-	link = hashmap_link_pop(map, key, size);
+	link = hashmap_link_pop(map, key, keysize);
 	if (!link) return;
 	map->allocator->free(link);	
 }
@@ -188,12 +202,7 @@ hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value)
 	struct hashmap_link **iter;
 	int rc;
 
-	iter = hashmap_link_get(map, key, keysize);
-	if (iter == NULL) {
-		iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
-		while (*iter) iter = &((*iter)->next);
-	}
-
+	iter = hashmap_link_pos(map, key, keysize);
 	if (*iter) {
 		hashmap_link_set(map, *iter, key, keysize, value);
 	} else {
