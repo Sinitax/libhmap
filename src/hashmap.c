@@ -153,7 +153,7 @@ hashmap_link_pop(struct hashmap *map, const void *key, size_t keysize)
 
 void
 hashmap_link_set(struct hashmap *map, struct hashmap_link *link,
-	void *key, size_t keysize, void *value)
+	void *key, size_t keysize, struct hashmap_val value)
 {
 	link->key = key;
 	link->keysize = keysize;
@@ -162,7 +162,7 @@ hashmap_link_set(struct hashmap *map, struct hashmap_link *link,
 
 int
 hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
-	void *key, size_t keysize, void *value)
+	void *key, size_t keysize, struct hashmap_val value)
 {
 	struct hashmap_link *link;
 	int rc;
@@ -199,7 +199,8 @@ hashmap_rm(struct hashmap *map, const void *key, size_t keysize)
 }
 
 int
-hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value)
+hashmap_set(struct hashmap *map, void *key, size_t keysize,
+	struct hashmap_val value)
 {
 	struct hashmap_link **iter;
 
@@ -212,7 +213,8 @@ hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value)
 }
 
 int
-hashmap_add(struct hashmap *map, void *key, size_t keysize, void *value)
+hashmap_add(struct hashmap *map, void *key, size_t keysize,
+	struct hashmap_val value)
 {
 	struct hashmap_link **iter;
 	int rc;

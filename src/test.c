@@ -12,7 +12,7 @@ main(int argc, const char **argv)
 {
 	struct hashmap hashmap;
 	struct hashmap_iter iter;
-	void *key, *value;
+	void *key;
 	int i, rc;
 
 	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher,
@@ -21,16 +21,14 @@ main(int argc, const char **argv)
 
 	for (i = 1; i < argc; i++) {
 		key = strdup(argv[i]);
-		value = malloc(sizeof(int));
-		memcpy(value, &i, sizeof(int));
-		rc = hashmap_set(&hashmap, key, strlen(key) + 1,
-			value, sizeof(int));
+		rc = hashmap_add(&hashmap, key, strlen(key) + 1,
+			(struct hashmap_val) {.i = i});
 		if (rc) LIBHASHMAP_ERR(rc);
 	}
 
 	for (HASHMAP_ITER(&hashmap, &iter)) {
 		printf("%s: %i\n", (char *)iter.link->key,
-			*(int*)iter.link->value);
+			iter.link->value.i);
 	}
 
 	hashmap_deinit(&hashmap);

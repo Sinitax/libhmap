@@ -20,10 +20,20 @@ enum {
 	HMAP_KEY_MISSING,
 };
 
+struct hashmap_val {
+	union {
+		char c;
+		float f;
+		int i;
+		unsigned int u;
+		void *p;
+	};
+};
+
 struct hashmap_link {
 	void *key;
 	size_t keysize;
-	void *value;
+	struct hashmap_val value;
 	struct hashmap_link *next;
 };
 
@@ -59,15 +69,17 @@ struct hashmap_link **hashmap_link_pos(struct hashmap *map,
 struct hashmap_link *hashmap_link_pop(struct hashmap *map,
 	const void *key, size_t size);
 void hashmap_link_set(struct hashmap *map, struct hashmap_link *link,
-	void *key, size_t keysize, void *value);
+	void *key, size_t keysize, struct hashmap_val value);
 int hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
-	void *key, size_t keysize, void *value);
+	void *key, size_t keysize, struct hashmap_val value);
 
 struct hashmap_link *hashmap_get(struct hashmap *map,
 	const void *key, size_t size);
 void hashmap_rm(struct hashmap *map, const void *key, size_t size);
-int hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value);
-int hashmap_add(struct hashmap *map, void *key, size_t keysize, void *value);
+int hashmap_set(struct hashmap *map, void *key, size_t keysize,
+	struct hashmap_val value);
+int hashmap_add(struct hashmap *map, void *key, size_t keysize,
+	struct hashmap_val value);
 
 void hashmap_iter_init(struct hashmap_iter *iter);
 bool hashmap_iter_next(const struct hashmap *map, struct hashmap_iter *iter);
