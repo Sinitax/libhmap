@@ -5,7 +5,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LIBHASHMAP_ERR(rc) errx(1, "libhashmap: %s", rc < 0 ? strerror(-rc) : "???")
+#define LIBHASHMAP_ERR(rc) errx(1, "libhashmap: %s", \
+	rc < 0 ? strerror(-rc) : hmap_err[rc])
+
+static const char *hmap_err[] = {
+	HASHMAP_STRERR_INIT
+};
 
 int
 main(int argc, const char **argv)

@@ -10,6 +10,11 @@
 #define HASHMAP_ITER(map, iter) \
 	hashmap_iter_init(iter); hashmap_iter_next(map, iter);
 
+#define HASHMAP_STRERR_INIT \
+	[HMAP_OK] = "Success", \
+	[HMAP_KEY_EXISTS] = "Key exists", \
+	[HMAP_KEY_MISSING] = "Key missing"
+
 typedef uint32_t (*hashmap_hash_func)(const void *data, size_t size);
 typedef bool (*hashmap_keycmp_func)(const void *key1, size_t size1,
 	const void *key2, size_t size2);
