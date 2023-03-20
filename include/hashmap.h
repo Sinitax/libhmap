@@ -17,7 +17,6 @@ struct hashmap_link {
 	void *key;
 	size_t key_size;
 	void *value;
-	size_t value_size;
 	struct hashmap_link *next;
 };
 
@@ -51,11 +50,7 @@ struct hashmap_link *hashmap_get(struct hashmap *map,
 struct hashmap_link *hashmap_pop(struct hashmap *map,
 	const void *key, size_t size);
 
-int hashmap_link_set(struct hashmap *map,
-	struct hashmap_link *link, void *key, size_t key_size,
-	void *value, size_t value_size);
-int hashmap_set(struct hashmap *map, struct hashmap_link **link,
-	void *key, size_t key_size, void *value, size_t value_size);
+int hashmap_set(struct hashmap *map, void *key, size_t key_size, void *value);
 
 void hashmap_iter_init(struct hashmap_iter *iter);
 bool hashmap_iter_next(const struct hashmap *map, struct hashmap_iter *iter);

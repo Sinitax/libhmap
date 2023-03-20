@@ -3,18 +3,13 @@
 #include <errno.h>
 #include <string.h>
 
-static struct hashmap_link **hashmap_get_linkp(struct hashmap *map,
-	const void *key, size_t size);
-static int hashmap_link_alloc(struct hashmap *map, struct hashmap_link **link,
-	void *key, size_t key_size, void *value, size_t value_size);
-
 static inline size_t
 hashmap_key_bucket(struct hashmap *map, const void *key, size_t size)
 {
 	return map->hash(key, size) % map->size;
 }
 
-struct hashmap_link **
+static struct hashmap_link **
 hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter, *link;
@@ -31,25 +26,6 @@ hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
 }
 
 int
-hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
-	void *key, size_t key_size, void *value, size_t value_size)
-{
-	struct hashmap_link *link;
-	int rc;
-
-	rc = map->allocator->alloc((void **)&link, sizeof(struct hashmap_link));
-	if (rc) return -rc;
-	link->key = key;
-	link->key_size = key_size;
-	link->value = value;
-	link->value_size = value_size;
-	link->next = NULL;
-	*out = link;
-
-	return 0;
-}
-
-int
 hashmap_init(struct hashmap *map, size_t size, hashmap_hash_func hasher,
 	hashmap_keycmp_func keycmp, const struct allocator *allocator)
 {
@@ -59,7 +35,6 @@ hashmap_init(struct hashmap *map, size_t size, hashmap_hash_func hasher,
 	map->keycmp = keycmp;
 	map->size = size;
 	map->hash = hasher;
-
 	rc = map->allocator->alloc((void **)&map->buckets,
 		sizeof(void *) * size);
 	if (rc) return -rc;
@@ -107,23 +82,11 @@ int
 hashmap_copy(struct hashmap *dst, const struct hashmap *src)
 {
 	struct hashmap_iter iter;
-	void *key, *value;
-	size_t key_size;
-	size_t value_size;
 	int rc;
 
 	for (HASHMAP_ITER(src, &iter)) {
-		key_size = iter.link->key_size;
-		rc = dst->allocator->alloc(&key, key_size);
-		if (rc) return -rc;
-		memcpy(key, iter.link->key, key_size);
-
-		value_size = iter.link->value_size;
-		rc = dst->allocator->alloc(&value, value_size);
-		if (rc) return -rc;
-		memcpy(value, iter.link->value, value_size);
-
-		rc = hashmap_set(dst, NULL, key, key_size, value, value_size);
+		rc = hashmap_set(dst, NULL, iter.link->key,
+			iter.link->key_size, iter.link->value);
 		if (rc) return rc;
 	}
 
@@ -149,12 +112,10 @@ hashmap_clear(struct hashmap *map)
 
 	prev = NULL;
 	for (HASHMAP_ITER(map, &iter)) {
-		free(prev);
-		map->allocator->free(iter.link->key);
-		map->allocator->free(iter.link->value);
+		map->allocator->free(prev);
 		prev = iter.link;
 	}
-	free(prev);
+	map->allocator->free(prev);
 
 	for (i = 0; i < map->size; i++)
 		map->buckets[i] = NULL;
@@ -184,28 +145,38 @@ hashmap_pop(struct hashmap *map, const void *key, size_t size)
 	return NULL;
 }
 
-int
+static int
 hashmap_link_set(struct hashmap *map, struct hashmap_link *link,
-	void *key, size_t key_size, void *value, size_t value_size)
+	void *key, size_t key_size, void *value)
 {
+	link->key = key;
+	link->key_size = key_size;
+	link->value = value;
+
+	return 0;
+}
+
+static int
+hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
+	void *key, size_t key_size, void *value)
+{
+	struct hashmap_link *link;
 	int rc;
 
-	rc = map->allocator->free(link->key);
+	rc = map->allocator->alloc((void **)&link, sizeof(struct hashmap_link));
 	if (rc) return -rc;
 	link->key = key;
 	link->key_size = key_size;
-
-	rc = map->allocator->free(link->value);
-	if (rc) return -rc;
 	link->value = value;
-	link->value_size = value_size;
+	link->next = NULL;
+	*out = link;
 
 	return 0;
 }
 
 int
 hashmap_set(struct hashmap *map, struct hashmap_link **link,
-	void *key, size_t key_size, void *value, size_t value_size)
+	void *key, size_t key_size, void *value)
 {
 	struct hashmap_link **iter;
 	int rc;
@@ -217,12 +188,10 @@ hashmap_set(struct hashmap *map, struct hashmap_link **link,
 	}
 
 	if (*iter) {
-		rc = hashmap_link_set(map, *iter,
-			key, key_size, value, value_size);
+		rc = hashmap_link_set(map, *iter, key, key_size, value);
 		if (rc) return rc;
 	} else {
-		rc = hashmap_link_alloc(map, iter,
-			key, key_size, value, value_size);
+		rc = hashmap_link_alloc(map, iter, key, key_size, value);
 		if (rc) return rc;
 	}
 
