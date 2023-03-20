@@ -9,22 +9,6 @@ hashmap_key_bucket(struct hashmap *map, const void *key, size_t size)
 	return map->hash(key, size) % map->size;
 }
 
-static struct hashmap_link **
-hashmap_get_linkp(struct hashmap *map, const void *key, size_t size)
-{
-	struct hashmap_link **iter, *link;
-
-	iter = &map->buckets[hashmap_key_bucket(map, key, size)];
-	while (*iter != NULL) {
-		link = *iter;
-		if (map->keycmp(link->key, link->key_size, key, size))
-			return iter;
-		iter = &(*iter)->next;
-	}
-
-	return NULL;
-}
-
 int
 hashmap_init(struct hashmap *map, size_t size, hashmap_hash_func hasher,
 	hashmap_keycmp_func keycmp, const struct allocator *allocator)
@@ -85,8 +69,8 @@ hashmap_copy(struct hashmap *dst, const struct hashmap *src)
 	int rc;
 
 	for (HASHMAP_ITER(src, &iter)) {
-		rc = hashmap_set(dst, NULL, iter.link->key,
-			iter.link->key_size, iter.link->value);
+		rc = hashmap_set(dst, iter.link->key,
+			iter.link->keysize, iter.link->value);
 		if (rc) return rc;
 	}
 
@@ -121,22 +105,28 @@ hashmap_clear(struct hashmap *map)
 		map->buckets[i] = NULL;
 }
 
-struct hashmap_link *
-hashmap_get(struct hashmap *map, const void *key, size_t size)
+struct hashmap_link **
+hashmap_link_get(struct hashmap *map, const void *key, size_t size)
 {
-	struct hashmap_link **iter;
+	struct hashmap_link **iter, *link;
 
-	iter = hashmap_get_linkp(map, key, size);
+	iter = &map->buckets[hashmap_key_bucket(map, key, size)];
+	while (*iter != NULL) {
+		link = *iter;
+		if (map->keycmp(link->key, link->keysize, key, size))
+			return iter;
+		iter = &(*iter)->next;
+	}
 
-	return iter ? *iter : NULL;
+	return NULL;
 }
 
 struct hashmap_link *
-hashmap_pop(struct hashmap *map, const void *key, size_t size)
+hashmap_link_pop(struct hashmap *map, const void *key, size_t size)
 {
 	struct hashmap_link **iter;
 
-	iter = hashmap_get_linkp(map, key, size);
+	iter = hashmap_link_get(map, key, size);
 	if (iter) {
 		*iter = (*iter)->next;
 		return *iter;
@@ -145,20 +135,18 @@ hashmap_pop(struct hashmap *map, const void *key, size_t size)
 	return NULL;
 }
 
-static int
+void
 hashmap_link_set(struct hashmap *map, struct hashmap_link *link,
-	void *key, size_t key_size, void *value)
+	void *key, size_t keysize, void *value)
 {
 	link->key = key;
-	link->key_size = key_size;
+	link->keysize = keysize;
 	link->value = value;
-
-	return 0;
 }
 
-static int
+int
 hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
-	void *key, size_t key_size, void *value)
+	void *key, size_t keysize, void *value)
 {
 	struct hashmap_link *link;
 	int rc;
@@ -166,7 +154,7 @@ hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
 	rc = map->allocator->alloc((void **)&link, sizeof(struct hashmap_link));
 	if (rc) return -rc;
 	link->key = key;
-	link->key_size = key_size;
+	link->keysize = keysize;
 	link->value = value;
 	link->next = NULL;
 	*out = link;
@@ -174,28 +162,44 @@ hashmap_link_alloc(struct hashmap *map, struct hashmap_link **out,
 	return 0;
 }
 
+struct hashmap_link *
+hashmap_get(struct hashmap *map, const void *key, size_t size)
+{
+	struct hashmap_link **iter;
+
+	iter = hashmap_link_get(map, key, size);
+
+	return iter ? *iter : NULL;
+}
+
+void
+hashmap_rm(struct hashmap *map, const void *key, size_t size)
+{
+	struct hashmap_link *link;
+
+	link = hashmap_link_pop(map, key, size);
+	if (!link) return;
+	map->allocator->free(link);	
+}
+
 int
-hashmap_set(struct hashmap *map, struct hashmap_link **link,
-	void *key, size_t key_size, void *value)
+hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value)
 {
 	struct hashmap_link **iter;
 	int rc;
 
-	iter = hashmap_get_linkp(map, key, key_size);
+	iter = hashmap_link_get(map, key, keysize);
 	if (iter == NULL) {
-		iter = &map->buckets[hashmap_key_bucket(map, key, key_size)];
+		iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
 		while (*iter) iter = &((*iter)->next);
 	}
 
 	if (*iter) {
-		rc = hashmap_link_set(map, *iter, key, key_size, value);
-		if (rc) return rc;
+		hashmap_link_set(map, *iter, key, keysize, value);
 	} else {
-		rc = hashmap_link_alloc(map, iter, key, key_size, value);
+		rc = hashmap_link_alloc(map, iter, key, keysize, value);
 		if (rc) return rc;
 	}
-
-	if (link) *link = *iter;
 
 	return 0;
 }

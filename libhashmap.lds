@@ -8,10 +8,13 @@ LIBHASHMAP_1.3 {
 	hashmap_swap;
 	hashmap_clear;
 
-	hashmap_get;
-	hashmap_pop;
-
+	hashmap_link_get;
+	hashmap_link_pop;
 	hashmap_link_set;
+	hashmap_link_alloc;
+
+	hashmap_get;
+	hashmap_rm;
 	hashmap_set;
 
 	hashmap_iter_init;
