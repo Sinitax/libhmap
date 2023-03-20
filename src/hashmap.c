@@ -106,14 +106,14 @@ hashmap_clear(struct hashmap *map)
 }
 
 struct hashmap_link **
-hashmap_link_get(struct hashmap *map, const void *key, size_t size)
+hashmap_link_get(struct hashmap *map, const void *key, size_t keysize)
 {
 	struct hashmap_link **iter, *link;
 
-	iter = &map->buckets[hashmap_key_bucket(map, key, size)];
+	iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
 	while (*iter != NULL) {
 		link = *iter;
-		if (map->keycmp(link->key, link->keysize, key, size))
+		if (map->keycmp(link->key, link->keysize, key, keysize))
 			return iter;
 		iter = &(*iter)->next;
 	}
@@ -124,12 +124,14 @@ hashmap_link_get(struct hashmap *map, const void *key, size_t size)
 struct hashmap_link **
 hashmap_link_pos(struct hashmap *map, const void *key, size_t keysize)
 {
-	struct hashmap_link **iter;
+	struct hashmap_link **iter, *link;
 
-	iter = hashmap_link_get(map, key, keysize);
-	if (iter == NULL) {
-		iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
-		while (*iter) iter = &((*iter)->next);
+	iter = &map->buckets[hashmap_key_bucket(map, key, keysize)];
+	while (*iter != NULL) {
+		link = *iter;
+		if (map->keycmp(link->key, link->keysize, key, keysize))
+			return iter;
+		iter = &(*iter)->next;
 	}
 
 	return iter;
