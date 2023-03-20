@@ -1,5 +1,7 @@
 hashmap_init
 hashmap_deinit
+hashmap_alloc
+hashmap_free
 
 hashmap_copy
 hashmap_swap

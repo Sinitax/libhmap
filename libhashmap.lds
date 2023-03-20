@@ -1,6 +1,8 @@
-LIBHASHMAP_1.2 {
+LIBHASHMAP_1.2.1 {
 	hashmap_init;
 	hashmap_deinit;
+	hashmap_alloc;
+	hashmap_free;
 
 	hashmap_copy;
 	hashmap_swap;
