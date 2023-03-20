@@ -1,4 +1,4 @@
-LIBHASHMAP_1.3 {
+LIBHASHMAP_1.3.2 {
 	hashmap_init;
 	hashmap_deinit;
 	hashmap_alloc;
@@ -12,6 +12,7 @@ LIBHASHMAP_1.3 {
 	hashmap_link_pos;
 	hashmap_link_pop;
 	hashmap_link_set;
+	hashmap_link_add;
 	hashmap_link_alloc;
 
 	hashmap_get;

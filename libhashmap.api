@@ -16,6 +16,7 @@ hashmap_link_alloc
 hashmap_get
 hashmap_rm
 hashmap_set
+hashmap_add
 
 hashmap_iter_init
 hashmap_iter_next

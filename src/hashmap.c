@@ -200,15 +200,26 @@ int
 hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value)
 {
 	struct hashmap_link **iter;
+
+	iter = hashmap_link_pos(map, key, keysize);
+	if (!*iter) return HMAP_KEY_MISSING;
+
+	hashmap_link_set(map, *iter, key, keysize, value);
+
+	return 0;
+}
+
+int
+hashmap_add(struct hashmap *map, void *key, size_t keysize, void *value)
+{
+	struct hashmap_link **iter;
 	int rc;
 
 	iter = hashmap_link_pos(map, key, keysize);
-	if (*iter) {
-		hashmap_link_set(map, *iter, key, keysize, value);
-	} else {
-		rc = hashmap_link_alloc(map, iter, key, keysize, value);
-		if (rc) return rc;
-	}
+	if (*iter) return HMAP_KEY_EXISTS;
+
+	rc = hashmap_link_alloc(map, iter, key, keysize, value);
+	if (rc) return rc;
 
 	return 0;
 }

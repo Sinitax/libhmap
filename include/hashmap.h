@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/types.h>
 
 #define HASHMAP_ITER(map, iter) \
 	hashmap_iter_init(iter); hashmap_iter_next(map, iter);
@@ -12,6 +13,12 @@
 typedef uint32_t (*hashmap_hash_func)(const void *data, size_t size);
 typedef bool (*hashmap_keycmp_func)(const void *key1, size_t size1,
 	const void *key2, size_t size2);
+
+enum {
+	HMAP_OK,
+	HMAP_KEY_EXISTS,
+	HMAP_KEY_MISSING,
+};
 
 struct hashmap_link {
 	void *key;
@@ -60,6 +67,7 @@ struct hashmap_link *hashmap_get(struct hashmap *map,
 	const void *key, size_t size);
 void hashmap_rm(struct hashmap *map, const void *key, size_t size);
 int hashmap_set(struct hashmap *map, void *key, size_t keysize, void *value);
+int hashmap_add(struct hashmap *map, void *key, size_t keysize, void *value);
 
 void hashmap_iter_init(struct hashmap_iter *iter);
 bool hashmap_iter_next(const struct hashmap *map, struct hashmap_iter *iter);
