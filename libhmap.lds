@@ -1,0 +1,27 @@
+LIBHMAP_1.0.0 {
+	hmap_init;
+	hmap_deinit;
+	hmap_alloc;
+	hmap_free;
+
+	hmap_copy;
+	hmap_swap;
+	hmap_clear;
+
+	hmap_link_get;
+	hmap_link_pos;
+	hmap_link_pop;
+	hmap_link_set;
+	hmap_link_add;
+	hmap_link_alloc;
+
+	hmap_get;
+	hmap_rm;
+	hmap_set;
+
+	hmap_iter_init;
+	hmap_iter_next;
+
+	hmap_str_hash;
+	hmap_str_keycmp;
+};

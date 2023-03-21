@@ -1,40 +1,42 @@
-#include "hashmap.h"
+#include "hmap.h"
 
 #include <err.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#define LIBHASHMAP_ERR(rc) errx(1, "libhashmap: %s", \
+#define LIBHMAP_ERR(rc) errx(1, "libhmap: %s", \
 	rc < 0 ? strerror(-rc) : hmap_err[rc])
 
 static const char *hmap_err[] = {
-	HASHMAP_STRERR_INIT
+	HMAP_STRERR_INIT
 };
 
 int
 main(int argc, const char **argv)
 {
-	struct hashmap hashmap;
-	struct hashmap_iter iter;
+	struct hmap hmap;
+	struct hmap_iter iter;
 	void *key;
 	int i, rc;
 
-	rc = hashmap_init(&hashmap, 10, hashmap_str_hasher,
-		hashmap_default_keycmp, &stdlib_heap_allocator);
-	if (rc) LIBHASHMAP_ERR(rc);
+	rc = hmap_init(&hmap, 10, hmap_str_hash,
+		hmap_str_keycmp, &stdlib_heap_allocator);
+	if (rc) LIBHMAP_ERR(rc);
 
 	for (i = 1; i < argc; i++) {
 		key = strdup(argv[i]);
-		rc = hashmap_add(&hashmap, key, strlen(key) + 1,
-			(struct hashmap_val) {.i = i});
-		if (rc) LIBHASHMAP_ERR(rc);
+		rc = hmap_add(&hmap, (struct hmap_key) {.p = key},
+			(struct hmap_val) {.i = i});
+		if (rc) LIBHMAP_ERR(rc);
 	}
 
-	for (HASHMAP_ITER(&hashmap, &iter)) {
-		printf("%s: %i\n", (char *)iter.link->key,
+	for (HMAP_ITER(&hmap, &iter)) {
+		printf("%s: %i\n", (char *)iter.link->key.p,
 			iter.link->value.i);
 	}
 
-	hashmap_deinit(&hashmap);
+	for (HMAP_ITER(&hmap, &iter))
+		free(iter.link->key.p);
+	hmap_deinit(&hmap);
 }
