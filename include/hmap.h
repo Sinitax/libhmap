@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
+#include <stdlib.h>
 
 #define HMAP_ITER(map, iter) \
 	hmap_iter_init(iter); hmap_iter_next(map, iter);
@@ -39,10 +39,14 @@ enum {
 
 struct hmap_key {
 	union {
+		bool b;
 		char c;
 		float f;
+		double d;
 		int i;
 		unsigned int u;
+		size_t s;
+		ssize_t ss;
 		const void *p;
 		void *_p;
 	};
@@ -50,10 +54,14 @@ struct hmap_key {
 
 struct hmap_val {
 	union {
+		bool b;
 		char c;
 		float f;
+		double d;
 		int i;
 		unsigned int u;
+		size_t s;
+		ssize_t ss;
 		const void *p;
 		void *_p;
 	};
