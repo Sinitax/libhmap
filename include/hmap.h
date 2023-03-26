@@ -86,28 +86,28 @@ struct hmap {
 	const struct allocator *allocator;
 };
 
-int hmap_init(struct hmap *map, size_t size, hmap_hash_func hasher,
+int hmap_init(struct hmap *map, size_t buckets, hmap_hash_func hasher,
 	hmap_keycmp_func keycmp, const struct allocator *allocator);
 void hmap_deinit(struct hmap *map);
 
-int hmap_alloc(struct hmap **map, size_t size, hmap_hash_func hasher,
+int hmap_alloc(struct hmap **map, size_t buckets, hmap_hash_func hasher,
 	hmap_keycmp_func keycmp, const struct allocator *allocator);
 void hmap_free(struct hmap *map);
 
-int hmap_copy(struct hmap *dst, const struct hmap *src);
+int hmap_copy(const struct hmap *dst, const struct hmap *src);
 void hmap_swap(struct hmap *m1, struct hmap *m2);
-void hmap_clear(struct hmap *map);
+void hmap_clear(const struct hmap *map);
 
-struct hmap_link **hmap_link_get(struct hmap *map, struct hmap_key key);
-struct hmap_link **hmap_link_pos(struct hmap *map, struct hmap_key key);
-struct hmap_link *hmap_link_pop(struct hmap *map, struct hmap_key key);
-int hmap_link_alloc(struct hmap *map, struct hmap_link **out,
+struct hmap_link **hmap_link_get(const struct hmap *map, struct hmap_key key);
+struct hmap_link **hmap_link_pos(const struct hmap *map, struct hmap_key key);
+struct hmap_link *hmap_link_pop(const struct hmap *map, struct hmap_key key);
+int hmap_link_alloc(const struct hmap *map, struct hmap_link **out,
 	struct hmap_key key, struct hmap_val value);
 
-struct hmap_link *hmap_get(struct hmap *map, struct hmap_key key);
-void hmap_rm(struct hmap *map, struct hmap_key key);
-int hmap_set(struct hmap *map, struct hmap_key key, struct hmap_val value);
-int hmap_add(struct hmap *map, struct hmap_key key, struct hmap_val value);
+struct hmap_link *hmap_get(const struct hmap *map, struct hmap_key key);
+int hmap_set(const struct hmap *map, struct hmap_key key, struct hmap_val value);
+int hmap_rm(const struct hmap *map, struct hmap_key key);
+int hmap_add(const struct hmap *map, struct hmap_key key, struct hmap_val value);
 
 void hmap_iter_init(struct hmap_iter *iter);
 bool hmap_iter_next(const struct hmap *map, struct hmap_iter *iter);
