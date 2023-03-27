@@ -111,6 +111,13 @@ int hmap_add(const struct hmap *map, struct hmap_key key, struct hmap_val value)
 
 void hmap_iter_init(struct hmap_iter *iter);
 bool hmap_iter_next(const struct hmap *map, struct hmap_iter *iter);
+static inline bool hmap_iter_done(const struct hmap_iter *iter);
 
 uint32_t hmap_str_hash(struct hmap_key key);
 bool hmap_str_keycmp(struct hmap_key k1, struct hmap_key k2);
+
+static inline bool
+hmap_iter_done(const struct hmap_iter *iter)
+{
+	return !iter->link;
+}
