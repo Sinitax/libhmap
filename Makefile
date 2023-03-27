@@ -2,11 +2,14 @@ PREFIX ?= /usr/local
 INCLDIR ?= /include
 LIBDIR ?= /lib
 
-CFLAGS = -Wno-prototype -Wunused-function -Wunused-variable -Wconversion
 CFLAGS += -I include -I lib/liballoc/include
+CFLAGS += -Wunused-function -Wunused-variable -Wno-prototype 
+CFLAGS += -Wconversion -Wsign-compare -Werror
 
 ifeq "$(DEBUG)" "1"
-CFLAGS += -g
+CFLAGS += -Og -g
+else
+CFLAGS += -O2
 endif
 
 ifeq "$(ASSERT_ARGS)" "1"

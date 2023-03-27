@@ -32,7 +32,7 @@ typedef uint32_t (*hmap_hash_func)(struct hmap_key key);
 typedef bool (*hmap_keycmp_func)(struct hmap_key k1, struct hmap_key k2);
 
 enum {
-	HMAP_OK,
+	HMAP_OK = 0,
 	HMAP_KEY_EXISTS,
 	HMAP_KEY_MISSING,
 };

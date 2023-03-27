@@ -45,7 +45,7 @@ hmap_alloc(struct hmap **map, size_t size, hmap_hash_func hasher,
 {
 	int rc;
 
-	LIBHMAP_ABORT_ON_ARGS(!allocator)
+	LIBHMAP_ABORT_ON_ARGS(!allocator);
 
 	rc = allocator->alloc((void **)map, sizeof(struct hmap));
 	if (rc) return -rc;

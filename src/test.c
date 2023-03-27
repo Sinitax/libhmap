@@ -17,7 +17,7 @@ main(int argc, const char **argv)
 {
 	struct hmap hmap;
 	struct hmap_iter iter;
-	void *key;
+	char *arg;
 	int i, rc;
 
 	rc = hmap_init(&hmap, 10, hmap_str_hash,
@@ -25,8 +25,8 @@ main(int argc, const char **argv)
 	if (rc) LIBHMAP_ERR(rc);
 
 	for (i = 1; i < argc; i++) {
-		key = strdup(argv[i]);
-		rc = hmap_add(&hmap, (struct hmap_key) {.p = key},
+		arg = strdup(argv[i]);
+		rc = hmap_add(&hmap, (struct hmap_key) {.p = arg},
 			(struct hmap_val) {.i = i});
 		if (rc) LIBHMAP_ERR(rc);
 	}
@@ -37,6 +37,6 @@ main(int argc, const char **argv)
 	}
 
 	for (HMAP_ITER(&hmap, &iter))
-		free(iter.link->key.p);
+		free(iter.link->key._p);
 	hmap_deinit(&hmap);
 }
