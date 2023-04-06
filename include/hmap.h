@@ -100,7 +100,7 @@ void hmap_clear(const struct hmap *map);
 
 struct hmap_link **hmap_link_get(const struct hmap *map, struct hmap_key key);
 struct hmap_link **hmap_link_pos(const struct hmap *map, struct hmap_key key);
-struct hmap_link *hmap_link_pop(const struct hmap *map, struct hmap_key key);
+struct hmap_link *hmap_link_pop(const struct hmap *map, struct hmap_link **linkp);
 int hmap_link_alloc(const struct hmap *map, struct hmap_link **out,
 	struct hmap_key key, struct hmap_val value);
 

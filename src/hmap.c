@@ -154,19 +154,16 @@ hmap_link_pos(const struct hmap *map, struct hmap_key key)
 }
 
 struct hmap_link *
-hmap_link_pop(const struct hmap *map, struct hmap_key key)
+hmap_link_pop(const struct hmap *map, struct hmap_link **link)
 {
-	struct hmap_link **iter;
+	struct hmap_link *tmp;
 
-	LIBHMAP_ABORT_ON_ARGS(!map);
+	LIBHMAP_ABORT_ON_ARGS(!map || !link);
 
-	iter = hmap_link_get(map, key);
-	if (iter) {
-		*iter = (*iter)->next;
-		return *iter;
-	}
+	tmp = *link;
+	*link = (*link)->next;
 
-	return NULL;
+	return tmp;
 }
 
 int
@@ -218,13 +215,14 @@ hmap_set(const struct hmap *map, struct hmap_key key, struct hmap_val value)
 int
 hmap_rm(const struct hmap *map, struct hmap_key key)
 {
-	struct hmap_link *link;
+	struct hmap_link *link, **linkp;
 	int rc;
 
 	LIBHMAP_ABORT_ON_ARGS(!map);
 
-	link = hmap_link_pop(map, key);
-	if (!link) return HMAP_KEY_MISSING;
+	linkp = hmap_link_get(map, key);
+	if (!linkp) return HMAP_KEY_MISSING;
+	link = hmap_link_pop(map, linkp);
 
 	rc = map->allocator->free(link);
 	if (rc) return -rc;
