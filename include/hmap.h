@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
+#include <sys/types.h>
 
 #define HMAP_ITER(map, iter) \
 	hmap_iter_init(iter); hmap_iter_next(map, iter);
