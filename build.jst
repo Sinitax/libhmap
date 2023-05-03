@@ -1,0 +1,36 @@
+CC = gcc
+
+liballoc = lib/liballoc//build/liballoc.a
+cflags = -Wunused-function -Wunused-variable -Wconversion -Wformat
+		-I include -I lib/liballoc/include
+
+rule mkdir
+	mkdir $out
+
+rule liba
+	$CC -o $out.tmp.o $in $cflags -r
+	objcopy --keep-global-symbols=libhmap.api $out.tmp.o $out.fixed.o
+	ar rcs $out $out.fixed.o
+	rm $out.tmp.o $out.fixed.o
+
+rule libso
+	$CC -o $out $in $cflags -shared -Wl,-version-script libhmap.lds
+
+rule cc
+	$CC -o $out $in $cflags
+
+target build
+	mkdir
+
+target build/libhmap.a
+	liba src/hmap.c
+
+target build/libhmap.so
+	libso src/hmap.c
+
+target build/test
+	cc src/test.c build/libhmap.a $liballoc
+
+target all
+	file build lib/liballoc//build build/libhmap.a build/libhmap.so build/test
+
