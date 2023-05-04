@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 #define HMAP_ITER(map, iter) \
-	hmap_iter_init(iter); hmap_iter_next(map, iter);
+	hmap_iter_init(&(iter)); hmap_iter_next(map, &(iter));
 
 #define HMAP_STRERR_INIT \
 	[HMAP_OK] = "Success", \
